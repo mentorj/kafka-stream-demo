@@ -7,7 +7,6 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.Produced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +34,6 @@ public class FilterTopicDemo {
 
         // defines a stream based on connect-test Connector (source)
         KStream<String, String> textLines = builder.stream("connect-demo-test", Consumed.with(stringSerde, stringSerde));
-        // remove non test- based patterns
-        textLines.filter(new Predicate<String, String>() {
-            @Override
-            public boolean test(String s1, String s2) {
-                logger.info("testing string :" + s2);
-                boolean takeLine = s2.contains("test-");
-                logger.info("line taken ? = " + takeLine);
-                return takeLine;
-            }
-        });//((key,value) -> {logger.info("filtering value =" + value );return value.contains("test-");} );
         // write to another topic : connect-demo-filtered
         textLines.to("connect-demo-pre-" +
                 "filtered", Produced.with(stringSerde, stringSerde));
