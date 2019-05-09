@@ -46,8 +46,13 @@ public class FilterTopicDemo {
             }
         });//((key,value) -> {logger.info("filtering value =" + value );return value.contains("test-");} );
         // write to another topic : connect-demo-filtered
-        textLines.to("connect-filtered", Produced.with(stringSerde, stringSerde));
+        textLines.to("connect-demo-pre-" +
+                "filtered", Produced.with(stringSerde, stringSerde));
 
+        KStream<String, String> filteredLines = builder.stream("connect-demo-pre-filtered", Consumed.with(stringSerde, stringSerde));
+        filteredLines
+                .filter((key, value) -> value.trim().contains("test-"))
+                .to("connect-demo-filtered", Produced.with(stringSerde, stringSerde));
         // start the app & handle shutdown
         KafkaStreams streams = new KafkaStreams(builder.build(), config);
         streams.start();
