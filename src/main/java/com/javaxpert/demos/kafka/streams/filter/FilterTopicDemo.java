@@ -1,5 +1,7 @@
 package com.javaxpert.demos.kafka.streams.filter;
 
+import com.javaxpert.demos.kafka.streams.filter.rules.MessageStartingWithTestRule;
+import com.javaxpert.demos.kafka.streams.filter.tools.Utils;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -8,6 +10,10 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.jeasy.rules.api.Facts;
+import org.jeasy.rules.api.Rules;
+import org.jeasy.rules.api.RulesEngine;
+import org.jeasy.rules.core.DefaultRulesEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +24,15 @@ public class FilterTopicDemo {
     public static void main(String[] args) {
 
         Logger logger = LoggerFactory.getLogger("FilterTopicDemo");
+
+        // setup rules engine
+        Rules rules = new Rules();
+        rules.register(new MessageStartingWithTestRule());
+        Facts facts = new Facts();
+
+
+        RulesEngine rulesEngine = new DefaultRulesEngine();
+        logger.debug("Rulesengine is ready to be fired and rules reguistered");
 
         Properties config = new Properties();
         config.put(StreamsConfig.APPLICATION_ID_CONFIG, "filter-file-app");
@@ -40,7 +55,12 @@ public class FilterTopicDemo {
 
         KStream<String, String> filteredLines = builder.stream("connect-demo-pre-filtered", Consumed.with(stringSerde, stringSerde));
         filteredLines
-                .filter((key, value) -> value.trim().contains("test-"))
+                .filter((key, value) -> {
+                    facts.put("msg", value);
+                    return Utils.allRulesOk(rulesEngine.check(rules, facts));
+                })
+                //.filter((key, value) -> value.trim().contains("test-"))
+                //.filter((key,value) -> {facts.put("msg",value);rulesEngine.check(rules,facts);)
                 .to("connect-demo-filtered", Produced.with(stringSerde, stringSerde));
         // start the app & handle shutdown
         KafkaStreams streams = new KafkaStreams(builder.build(), config);
