@@ -59,8 +59,6 @@ public class FilterTopicDemo {
                     facts.put("msg", value);
                     return Utils.allRulesOk(rulesEngine.check(rules, facts));
                 })
-                //.filter((key, value) -> value.trim().contains("test-"))
-                //.filter((key,value) -> {facts.put("msg",value);rulesEngine.check(rules,facts);)
                 .to("connect-demo-filtered", Produced.with(stringSerde, stringSerde));
         // start the app & handle shutdown
         KafkaStreams streams = new KafkaStreams(builder.build(), config);

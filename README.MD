@@ -35,7 +35,7 @@ java -jar <filter-uberjar.jar>
 ** Using the demo
 Once the demo started:
 - fire up a terminal ,
-- cd <demo_text_dir>
+- cd <demo_text_dir>, this is where input & output text files should live
 - add contents to the test.txt file
 - fire up another terminal in the same directory: tail -f test.sink.txt
 
@@ -66,4 +66,15 @@ topics=connect-demo-filtered
 key.converter=org.apache.kafka.connect.storage.StringConverter                                  
 value.converter=org.apache.kafka.connect.storage.StringConverter  
 ``` 
+
+* Technical details
+** Filtering
+Filtering done using Kafka Stream APi:
+-  receiving input data from a first topic (fed by Kafka Connector )
+- filtering (using a regex as a business ruke inside an engine) output to a second topic
+- output the final topic consumed by the sink connector
+
+** Serialization
+Bewware of some serialization problems once the message reachess Kafka, please refer to
+serializer key config property inside the properties file.
 
